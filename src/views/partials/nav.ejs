@@ -1,0 +1,54 @@
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="/shop">
+      <span class="brand-mark">✦</span>
+      <span class="brand-text">Anime Shop</span>
+      <span class="brand-tag">kawaii commerce</span>
+    </a>
+
+    <div class="bgm">
+      <audio id="bgm-audio" preload="none">
+        <source src="/bgm/Da%20Capo%20Honkai%20Impact%203rd%20Theme%20Song.mp3" type="audio/mpeg" />
+      </audio>
+      <button id="bgm-toggle" class="btn btn-ghost" type="button" aria-pressed="false">
+        BGM: Off
+      </button>
+      <input id="bgm-volume" class="bgm-vol" type="range" min="0" max="100" value="35" aria-label="BGM volume" />
+    </div>
+
+    <form class="search" action="/shop" method="get">
+      <input
+        class="search-input"
+        type="search"
+        name="q"
+        placeholder="Search figures, manga, mousepads…"
+        value="<%= (typeof q !== 'undefined' && q) ? q : '' %>"
+        aria-label="Search products"
+      />
+      <button class="btn btn-ghost" type="submit">Search</button>
+    </form>
+
+    <nav class="nav">
+      <a class="nav-link <%= currentPath?.startsWith('/shop') ? 'active' : '' %>" href="/shop">Shop</a>
+      <a class="nav-link <%= currentPath?.startsWith('/cart') ? 'active' : '' %>" href="/cart">
+        Cart
+        <% if (typeof cartCount !== 'undefined' && cartCount > 0) { %>
+          <span class="pill"><%= cartCount %></span>
+        <% } %>
+      </a>
+      <% if (locals.user) { %>
+        <a class="nav-link <%= currentPath?.startsWith('/account') ? 'active' : '' %>" href="/account">
+          <%= locals.user.display_name %>
+          <span class="pill" style="background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10)"><%= locals.user.role %></span>
+        </a>
+        <form action="/auth/sign-out" method="post" style="display:inline">
+          <input type="hidden" name="next" value="<%= currentPath || '/shop' %>" />
+          <button class="btn btn-ghost" type="submit">Sign out</button>
+        </form>
+      <% } else { %>
+        <a class="nav-link <%= currentPath?.startsWith('/auth') ? 'active' : '' %>" href="/auth/sign-in">Sign in</a>
+        <a class="btn btn-primary" href="/auth/sign-up">Sign up</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

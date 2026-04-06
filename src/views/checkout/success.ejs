@@ -1,0 +1,61 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Order confirmed</h1>
+    <div class="page-sub">Arigatō! Your order has been recorded.</div>
+  </section>
+
+  <section class="card">
+    <div class="notice">
+      <strong>Order #<%= order.id %></strong> • <span class="muted"><%= order.created_at %></span>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="label">Contact</div>
+        <div><%= order.email %></div>
+      </div>
+      <div>
+        <div class="label">Ship to</div>
+        <div><%= order.shipping_name %></div>
+        <div class="muted"><%= order.shipping_address1 %></div>
+        <div class="muted"><%= order.shipping_city %>, <%= order.shipping_country %></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="summary-lines">
+      <% items.forEach((i) => { %>
+        <div class="summary-line">
+          <div class="summary-name"><%= i.name %> <span class="muted">× <%= i.qty %></span></div>
+          <div class="summary-money"><%= formatMoney(i.line_total_cents) %></div>
+        </div>
+      <% }) %>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="summary-row">
+      <div class="muted">Subtotal</div>
+      <div><strong><%= formatMoney(order.subtotal_cents) %></strong></div>
+    </div>
+    <div class="summary-row">
+      <div class="muted">Shipping</div>
+      <div><strong><%= formatMoney(order.shipping_cents) %></strong></div>
+    </div>
+    <div class="summary-row total">
+      <div>Total</div>
+      <div><strong><%= formatMoney(order.total_cents) %></strong></div>
+    </div>
+
+    <div class="summary-actions">
+      <a class="btn btn-primary btn-lg" href="/shop">Continue shopping</a>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

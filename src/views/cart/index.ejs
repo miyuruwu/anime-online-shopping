@@ -1,0 +1,81 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: count, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Your cart</h1>
+    <div class="page-sub">Your haul is safe in this universe (session-based).</div>
+  </section>
+
+  <% if (count === 0) { %>
+    <div class="empty">
+      <div class="empty-title">Cart is empty</div>
+      <div class="empty-sub">Go grab something shiny.</div>
+      <div class="empty-actions">
+        <a class="btn btn-primary" href="/shop">Back to shop</a>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="cart">
+      <div class="cart-lines card">
+        <% lines.forEach((line) => { %>
+          <div class="cart-line">
+            <div class="cart-thumb">
+              <% if (line.product.image_url) { %>
+                <img src="<%= line.product.image_url %>" alt="<%= line.product.name %>" />
+              <% } %>
+            </div>
+            <div class="cart-main">
+              <a class="cart-title" href="/shop/p/<%= line.product.slug %>"><%= line.product.name %></a>
+              <div class="cart-meta">
+                <span class="price"><%= formatMoney(line.product.price_cents) %></span>
+                <span class="dot">•</span>
+                <span class="muted">Stock: <%= line.product.stock %></span>
+              </div>
+              <div class="cart-actions">
+                <form class="inline" action="/cart/set" method="post">
+                  <input type="hidden" name="product_id" value="<%= line.product.id %>" />
+                  <label class="label" for="qty-<%= line.product.id %>">Qty</label>
+                  <input
+                    id="qty-<%= line.product.id %>"
+                    class="qty"
+                    type="number"
+                    name="qty"
+                    min="0"
+                    max="99"
+                    value="<%= line.qty %>"
+                  />
+                  <button class="btn btn-ghost" type="submit">Update</button>
+                </form>
+              </div>
+            </div>
+            <div class="cart-total">
+              <div class="line-total"><%= formatMoney(line.line_total_cents) %></div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <aside class="cart-summary card">
+        <div class="summary-row">
+          <div class="muted">Items</div>
+          <div><strong><%= count %></strong></div>
+        </div>
+        <div class="summary-row">
+          <div class="muted">Subtotal</div>
+          <div><strong><%= formatMoney(subtotal_cents) %></strong></div>
+        </div>
+        <div class="summary-actions">
+          <a class="btn btn-primary btn-lg" href="/checkout">Checkout</a>
+          <form action="/cart/clear" method="post">
+            <button class="btn btn-ghost btn-lg" type="submit">Clear cart</button>
+          </form>
+        </div>
+        <div class="fineprint">Shipping is calculated at checkout. Free shipping over $75.</div>
+      </aside>
+    </div>
+  <% } %>
+</main>
+
+<%- include('../partials/footer') %>
+

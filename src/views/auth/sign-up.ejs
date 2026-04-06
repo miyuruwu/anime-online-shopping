@@ -1,0 +1,51 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Sign up</h1>
+    <div class="page-sub">Create an account to checkout and track your orders.</div>
+  </section>
+
+  <section class="card checkout-form">
+    <% if (error) { %>
+      <div class="alert"><strong>Oops.</strong> <%= error %></div>
+    <% } %>
+
+    <form action="/auth/sign-up" method="post" class="stack">
+      <input type="hidden" name="next" value="<%= next %>" />
+
+      <div class="field">
+        <label class="label" for="email">Email</label>
+        <input id="email" class="input" name="email" type="email" value="<%= form.email %>" required />
+      </div>
+      <div class="field">
+        <label class="label" for="display_name">Display name</label>
+        <input id="display_name" class="input" name="display_name" value="<%= form.display_name %>" required />
+      </div>
+
+      <div class="field">
+        <label class="label" for="role">Account type</label>
+        <select id="role" class="input" name="role" required>
+          <option value="buyer" <%= form.role === 'buyer' ? 'selected' : '' %>>Buyer</option>
+          <option value="seller" <%= form.role === 'seller' ? 'selected' : '' %>>Seller</option>
+        </select>
+        <div class="fineprint">Admin accounts are created manually in the database.</div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="password">Password</label>
+        <input id="password" class="input" name="password" type="password" minlength="8" required />
+        <div class="fineprint">8–72 characters.</div>
+      </div>
+
+      <button class="btn btn-primary btn-lg" type="submit">Create account</button>
+      <div class="fineprint">
+        Already have an account? <a href="/auth/sign-in?next=<%= encodeURIComponent(next) %>"><u>Sign in</u></a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

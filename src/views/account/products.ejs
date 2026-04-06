@@ -1,0 +1,90 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Manage products</h1>
+    <div class="page-sub">Seller/Admin view. Create products that show in the shop.</div>
+  </section>
+
+  <section class="card checkout-form" style="margin-bottom:16px">
+    <% if (error) { %>
+      <div class="alert"><strong>Oops.</strong> <%= error %></div>
+    <% } %>
+
+    <form action="/account/products" method="post" class="stack">
+      <div class="two">
+        <div class="field">
+          <label class="label" for="name">Name</label>
+          <input id="name" class="input" name="name" value="<%= form.name %>" required />
+        </div>
+        <div class="field">
+          <label class="label" for="slug">Slug</label>
+          <input id="slug" class="input" name="slug" value="<%= form.slug %>" placeholder="kiana-cosplay-costume" required />
+          <div class="fineprint">Lowercase letters, numbers, dashes only.</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="description">Description</label>
+        <textarea id="description" class="input" name="description" rows="3" required><%= form.description %></textarea>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label class="label" for="category_id">Category</label>
+          <select id="category_id" class="input" name="category_id" required>
+            <% categories.forEach((c) => { %>
+              <option value="<%= c.id %>" <%= String(form.category_id) === String(c.id) ? 'selected' : '' %>><%= c.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="image_url">Image URL</label>
+          <input id="image_url" class="input" name="image_url" value="<%= form.image_url %>" placeholder="/images/your-file.webp" required />
+          <div class="fineprint">Must start with <code>/images/</code>.</div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="field">
+          <label class="label" for="price_cents">Price (cents)</label>
+          <input id="price_cents" class="input" name="price_cents" type="number" min="0" value="<%= form.price_cents %>" required />
+        </div>
+        <div class="field">
+          <label class="label" for="stock">Stock</label>
+          <input id="stock" class="input" name="stock" type="number" min="0" value="<%= form.stock %>" required />
+        </div>
+      </div>
+
+      <label class="inline" style="align-items:center">
+        <input type="checkbox" name="is_featured" value="1" <%= form.is_featured ? 'checked' : '' %> />
+        <span class="muted">Featured</span>
+      </label>
+
+      <button class="btn btn-primary btn-lg" type="submit">Create product</button>
+      <div class="fineprint">Tip: put your image in <code>public/images/</code> and use its filename.</div>
+    </form>
+  </section>
+
+  <section class="card" style="padding:14px">
+    <div class="section-head" style="padding-bottom:10px">
+      <h2 class="section-title" style="font-size:18px">Latest products</h2>
+      <div class="section-sub"><%= products.length %> shown</div>
+    </div>
+    <div class="summary-lines">
+      <% products.forEach((p) => { %>
+        <div class="summary-line">
+          <div class="summary-name">
+            <strong><%= p.name %></strong>
+            <span class="muted">• <%= p.category_name %> • stock <%= p.stock %> • <code><%= p.slug %></code></span>
+          </div>
+          <div class="summary-money"><%= formatMoney(p.price_cents) %></div>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

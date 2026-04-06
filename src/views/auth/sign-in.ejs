@@ -1,0 +1,36 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Sign in</h1>
+    <div class="page-sub">Welcome back. Let’s continue your haul.</div>
+  </section>
+
+  <section class="card checkout-form">
+    <% if (error) { %>
+      <div class="alert"><strong>Oops.</strong> <%= error %></div>
+    <% } %>
+
+    <form action="/auth/sign-in" method="post" class="stack">
+      <input type="hidden" name="next" value="<%= next %>" />
+
+      <div class="field">
+        <label class="label" for="email">Email</label>
+        <input id="email" class="input" name="email" type="email" value="<%= form.email %>" required />
+      </div>
+      <div class="field">
+        <label class="label" for="password">Password</label>
+        <input id="password" class="input" name="password" type="password" required />
+      </div>
+
+      <button class="btn btn-primary btn-lg" type="submit">Sign in</button>
+      <div class="fineprint">
+        New here? <a href="/auth/sign-up?next=<%= encodeURIComponent(next) %>"><u>Create an account</u></a>
+      </div>
+    </form>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

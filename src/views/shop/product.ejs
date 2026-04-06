@@ -1,0 +1,72 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <div class="breadcrumbs">
+      <a href="/shop">Home</a>
+      <span class="sep">/</span>
+      <a href="/shop/c/<%= product.category_slug %>"><%= product.category_name %></a>
+      <span class="sep">/</span>
+      <span><%= product.name %></span>
+    </div>
+  </section>
+
+  <section class="product-page">
+    <div class="product-page-media card">
+      <img src="<%= product.image_url %>" alt="<%= product.name %>" />
+    </div>
+
+    <div class="product-page-info">
+      <div class="kicker"><%= product.category_emoji || '✦' %> <%= product.category_name %></div>
+      <h1 class="product-page-title"><%= product.name %></h1>
+      <div class="product-page-price"><%= formatMoney(product.price_cents) %></div>
+      <p class="product-page-desc"><%= product.description %></p>
+
+      <div class="row">
+        <div class="stock <%= product.stock > 0 ? 'in' : 'out' %>">
+          <%= product.stock > 0 ? `${product.stock} in stock` : "Sold out" %>
+        </div>
+        <div class="chip">Ships in 24–72h</div>
+        <div class="chip">Collector safe-pack</div>
+      </div>
+
+      <form class="buy-box card" action="/cart/add" method="post">
+        <input type="hidden" name="product_id" value="<%= product.id %>" />
+        <div class="buy-row">
+          <label class="label" for="qty">Qty</label>
+          <input id="qty" class="qty qty-lg" type="number" name="qty" min="1" max="99" value="1" />
+          <button class="btn btn-primary btn-lg" type="submit" <%= product.stock <= 0 ? 'disabled' : '' %>>
+            Add to cart
+          </button>
+          <a class="btn btn-ghost btn-lg" href="/cart">Go to cart</a>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">You might also like</h2>
+      <div class="section-sub">Same vibe, same shelf.</div>
+    </div>
+    <div class="grid products">
+      <% related.forEach((p) => { %>
+        <article class="card product">
+          <a class="product-media" href="/shop/p/<%= p.slug %>">
+            <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy" />
+          </a>
+          <div class="product-body">
+            <a class="product-title" href="/shop/p/<%= p.slug %>"><%= p.name %></a>
+            <div class="product-meta">
+              <div class="price"><%= formatMoney(p.price_cents) %></div>
+            </div>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

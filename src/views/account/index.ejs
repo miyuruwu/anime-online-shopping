@@ -1,0 +1,45 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Account</h1>
+    <div class="page-sub">Signed in as <strong><%= user.display_name %></strong> (<%= user.role %>).</div>
+  </section>
+
+  <section class="card checkout-form">
+    <div class="stack">
+      <div class="notice">
+        <strong>Email:</strong> <%= user.email %>
+      </div>
+
+      <div class="two">
+        <div class="card" style="padding:14px">
+          <div class="label">Buyer</div>
+          <div class="muted">Browse, cart, checkout.</div>
+        </div>
+        <div class="card" style="padding:14px">
+          <div class="label">Seller</div>
+          <div class="muted">Manage products.</div>
+        </div>
+      </div>
+
+      <div class="two">
+        <% if (user.role === 'seller' || user.role === 'admin') { %>
+          <a class="btn btn-primary btn-lg" href="/account/products">Manage products</a>
+        <% } else { %>
+          <a class="btn btn-primary btn-lg" href="/shop">Go shopping</a>
+        <% } %>
+
+        <% if (user.role === 'admin') { %>
+          <a class="btn btn-ghost btn-lg" href="/account/orders">View all orders</a>
+        <% } else { %>
+          <a class="btn btn-ghost btn-lg" href="/cart">View cart</a>
+        <% } %>
+      </div>
+    </div>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

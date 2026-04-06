@@ -1,0 +1,77 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: count, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">Checkout</h1>
+    <div class="page-sub">Mock checkout — creates an order in SQLite.</div>
+  </section>
+
+  <div class="checkout">
+    <section class="card checkout-form">
+      <% if (error) { %>
+        <div class="alert"><strong>Oops.</strong> <%= error %></div>
+      <% } %>
+
+      <form action="/checkout" method="post" class="stack">
+        <div class="field">
+          <label class="label" for="email">Email</label>
+          <input id="email" class="input" name="email" type="email" value="<%= form.email %>" required />
+        </div>
+        <div class="field">
+          <label class="label" for="shipping_name">Full name</label>
+          <input id="shipping_name" class="input" name="shipping_name" value="<%= form.shipping_name %>" required />
+        </div>
+        <div class="field">
+          <label class="label" for="shipping_address1">Address</label>
+          <input id="shipping_address1" class="input" name="shipping_address1" value="<%= form.shipping_address1 %>" required />
+        </div>
+
+        <div class="two">
+          <div class="field">
+            <label class="label" for="shipping_city">City</label>
+            <input id="shipping_city" class="input" name="shipping_city" value="<%= form.shipping_city %>" required />
+          </div>
+          <div class="field">
+            <label class="label" for="shipping_country">Country</label>
+            <input id="shipping_country" class="input" name="shipping_country" value="<%= form.shipping_country %>" required />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" type="submit">Place order</button>
+        <div class="fineprint">No real payment is processed. Stock is decremented on success.</div>
+      </form>
+    </section>
+
+    <aside class="card checkout-summary">
+      <div class="summary-title">Order summary</div>
+      <div class="summary-lines">
+        <% lines.forEach((l) => { %>
+          <div class="summary-line">
+            <div class="summary-name"><%= l.name %> <span class="muted">× <%= l.qty %></span></div>
+            <div class="summary-money"><%= formatMoney(l.line_total_cents) %></div>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="divider"></div>
+      <div class="summary-row">
+        <div class="muted">Subtotal</div>
+        <div><strong><%= formatMoney(subtotal_cents) %></strong></div>
+      </div>
+      <div class="summary-row">
+        <div class="muted">Shipping</div>
+        <div><strong><%= formatMoney(shipping_cents) %></strong></div>
+      </div>
+      <div class="summary-row total">
+        <div>Total</div>
+        <div><strong><%= formatMoney(total_cents) %></strong></div>
+      </div>
+
+      <a class="btn btn-ghost" href="/cart">Edit cart</a>
+    </aside>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>
+

@@ -1,0 +1,15 @@
+<%- include('./partials/head', { title }) %>
+<%- include('./partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="empty">
+    <div class="empty-title"><%= title || "Not found" %></div>
+    <div class="empty-sub"><%= subtitle || "Try heading back home." %></div>
+    <div class="empty-actions">
+      <a class="btn btn-primary" href="/shop">Back to shop</a>
+    </div>
+  </section>
+</main>
+
+<%- include('./partials/footer') %>
+

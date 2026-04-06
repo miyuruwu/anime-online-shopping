@@ -1,0 +1,33 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount: 0, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <h1 class="page-title">All orders</h1>
+    <div class="page-sub">Admin view (latest 100).</div>
+  </section>
+
+  <section class="card" style="padding:14px">
+    <% if (orders.length === 0) { %>
+      <div class="empty" style="margin:0">
+        <div class="empty-title">No orders yet</div>
+        <div class="empty-sub">Once someone checks out, orders will show here.</div>
+      </div>
+    <% } else { %>
+      <div class="summary-lines">
+        <% orders.forEach((o) => { %>
+          <div class="summary-line">
+            <div class="summary-name">
+              <strong>#<%= o.id %></strong>
+              <span class="muted">• <%= o.created_at %> • <%= o.email %></span>
+            </div>
+            <div class="summary-money"><%= formatMoney(o.total_cents) %></div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+

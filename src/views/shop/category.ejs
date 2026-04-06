@@ -1,0 +1,53 @@
+<%- include('../partials/head', { title }) %>
+<%- include('../partials/nav', { cartCount, currentPath }) %>
+
+<main class="container">
+  <section class="page-head">
+    <div class="breadcrumbs">
+      <a href="/shop">Home</a>
+      <span class="sep">/</span>
+      <span><%= category.name %></span>
+    </div>
+    <h1 class="page-title"><span class="accent"><%= category.emoji || '✦' %></span> <%= category.name %></h1>
+    <div class="page-sub">Curated picks for this section.</div>
+  </section>
+
+  <section class="section">
+    <div class="grid products">
+      <% products.forEach((p) => { %>
+        <article class="card product">
+          <a class="product-media" href="/shop/p/<%= p.slug %>">
+            <img src="<%= p.image_url %>" alt="<%= p.name %>" loading="lazy" />
+            <div class="product-badge"><%= p.category_emoji || '✦' %> <%= p.category_name %></div>
+          </a>
+          <div class="product-body">
+            <a class="product-title" href="/shop/p/<%= p.slug %>"><%= p.name %></a>
+            <div class="product-meta">
+              <div class="price"><%= formatMoney(p.price_cents) %></div>
+              <div class="stock <%= p.stock > 0 ? 'in' : 'out' %>">
+                <%= p.stock > 0 ? `${p.stock} in stock` : "Sold out" %>
+              </div>
+            </div>
+            <form class="product-actions" action="/cart/add" method="post">
+              <input type="hidden" name="product_id" value="<%= p.id %>" />
+              <input class="qty" type="number" name="qty" min="1" max="99" value="1" />
+              <button class="btn btn-primary" type="submit" <%= p.stock <= 0 ? 'disabled' : '' %>>
+                Add to cart
+              </button>
+            </form>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+
+    <% if (products.length === 0) { %>
+      <div class="empty">
+        <div class="empty-title">Nothing here yet</div>
+        <div class="empty-sub">Seed more products or pick another category.</div>
+      </div>
+    <% } %>
+  </section>
+</main>
+
+<%- include('../partials/footer') %>
+
