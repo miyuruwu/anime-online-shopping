@@ -31,7 +31,9 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_country TEXT NOT NULL,
   subtotal_cents INTEGER NOT NULL,
   shipping_cents INTEGER NOT NULL,
-  total_cents INTEGER NOT NULL
+  total_cents INTEGER NOT NULL,
+  user_id INTEGER,
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS order_items (

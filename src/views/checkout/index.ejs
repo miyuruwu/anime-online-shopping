@@ -14,6 +14,7 @@
       <% } %>
 
       <form action="/checkout" method="post" class="stack">
+        <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
         <div class="field">
           <label class="label" for="email">Email</label>
           <input id="email" class="input" name="email" type="email" value="<%= form.email %>" required />

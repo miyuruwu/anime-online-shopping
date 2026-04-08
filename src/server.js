@@ -1,9 +1,15 @@
+require("dotenv").config();
 const path = require("node:path");
 const express = require("express");
 const session = require("express-session");
+const SQLiteStore = require("connect-sqlite3")(session);
+const { csrfSync } = require("csrf-sync");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
+const { csrfSynchronisedProtection } = csrfSync({
+  getTokenFromRequest: (req) => req.body.CSRFToken
+});
 const { formatMoney } = require("./lib/money");
 const shopRoutes = require("./routes/shop");
 const cartRoutes = require("./routes/cart");
@@ -27,6 +33,7 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 
 app.use(
   session({
+    store: new SQLiteStore({ dir: path.join(__dirname, '..', 'data'), db: 'sessions.sqlite' }),
     secret: process.env.SESSION_SECRET || "dev-secret-change-me",
     resave: false,
     saveUninitialized: false,
@@ -38,10 +45,13 @@ app.use(
   })
 );
 
+app.use(csrfSynchronisedProtection);
+
 app.use((req, res, next) => {
   res.locals.formatMoney = formatMoney;
   res.locals.currentPath = req.path;
   res.locals.user = req.session?.user || null;
+  res.locals.csrfToken = req.csrfToken();
   next();
 });
 
@@ -57,6 +67,14 @@ app.use((req, res) => {
   res.status(404).render("404", {
     title: "Not found",
     subtitle: "This page got isekai’d."
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled error:", err);
+  res.status(500).render("404", {
+    title: "Server error",
+    subtitle: err.message || "An unexpected error occurred."
   });
 });
 

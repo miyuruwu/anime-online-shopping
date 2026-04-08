@@ -13,6 +13,9 @@ router.get("/", (req, res) => {
   const db = getDb();
   const q = normalizeQuery(req.query.q);
   const category = normalizeQuery(req.query.category);
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = 48;
+  const offset = (page - 1) * limit;
 
   const categories = db
     .prepare("SELECT id, slug, name, emoji FROM categories ORDER BY name ASC")
@@ -48,9 +51,9 @@ router.get("/", (req, res) => {
       JOIN categories c ON c.id = p.category_id
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
       ORDER BY p.created_at DESC
-      LIMIT 48
+      LIMIT ? OFFSET ?
     `;
-    products = db.prepare(sql).all(params);
+    products = db.prepare(sql).all(params, limit, offset);
   }
 
   const cart = getCart(req);
@@ -63,13 +66,17 @@ router.get("/", (req, res) => {
     categories,
     featured,
     products,
-    cartCount
+    cartCount,
+    page
   });
 });
 
 router.get("/c/:slug", (req, res) => {
   const db = getDb();
   const slug = String(req.params.slug || "");
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = 48;
+  const offset = (page - 1) * limit;
 
   const cat = db
     .prepare("SELECT id, slug, name, emoji FROM categories WHERE slug = ?")
@@ -88,9 +95,10 @@ router.get("/c/:slug", (req, res) => {
        FROM products p
        JOIN categories c ON c.id = p.category_id
        WHERE c.id = ?
-       ORDER BY p.created_at DESC`
+       ORDER BY p.created_at DESC
+       LIMIT ? OFFSET ?`
     )
-    .all(cat.id);
+    .all(cat.id, limit, offset);
 
   const cart = getCart(req);
   const cartCount = Object.values(cart.items).reduce((sum, it) => sum + it.qty, 0);
@@ -99,7 +107,8 @@ router.get("/c/:slug", (req, res) => {
     title: `${cat.name}`,
     category: cat,
     products,
-    cartCount
+    cartCount,
+    page
   });
 });
 

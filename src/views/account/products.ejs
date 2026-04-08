@@ -17,6 +17,7 @@
     <% } %>
 
     <form action="<%= formActionResolved %>" method="post" enctype="multipart/form-data" class="stack">
+      <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
       <div class="two">
         <div class="field">
           <label class="label" for="name">Name</label>
@@ -94,6 +95,7 @@
             <div class="summary-money"><%= formatMoney(p.price_cents) %></div>
             <a class="btn btn-ghost" href="/account/products/<%= p.id %>/edit">Edit</a>
             <form action="/account/products/<%= p.id %>/delete" method="post" style="display:inline">
+              <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
               <button class="btn btn-ghost" type="submit" onclick="return confirm('Delete this product?')">Remove</button>
             </form>
           </div>

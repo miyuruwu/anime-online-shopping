@@ -13,6 +13,7 @@
     <% } %>
 
     <form action="/auth/sign-in" method="post" class="stack">
+      <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
       <input type="hidden" name="next" value="<%= next %>" />
 
       <div class="field">

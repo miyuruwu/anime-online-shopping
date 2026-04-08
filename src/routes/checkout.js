@@ -73,7 +73,7 @@ router.get("/", requireAuth, (req, res) => {
   });
 });
 
-router.post("/", requireAuth, (req, res) => {
+router.post("/", requireAuth, (req, res, next) => {
   const db = getDb();
   const cart = getCart(req);
   const summary = cartSummary(db, cart);
@@ -115,8 +115,8 @@ router.post("/", requireAuth, (req, res) => {
       .prepare(
         `INSERT INTO orders
          (email, shipping_name, shipping_address1, shipping_city, shipping_country,
-          subtotal_cents, shipping_cents, total_cents)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          subtotal_cents, shipping_cents, total_cents, user_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         form.email,
@@ -126,7 +126,8 @@ router.post("/", requireAuth, (req, res) => {
         form.shipping_country,
         summary.subtotal_cents,
         shipping,
-        total
+        total,
+        req.session?.user?.id || null
       );
 
     const orderId = order.lastInsertRowid;
@@ -164,15 +165,18 @@ router.post("/", requireAuth, (req, res) => {
     clearCart(req);
     res.redirect(`/checkout/success/${orderId}`);
   } catch (e) {
-    const shipping2 = computeShipping(summary.subtotal_cents);
-    res.status(409).render("checkout/index", {
-      title: "Checkout",
-      ...summary,
-      shipping_cents: shipping2,
-      total_cents: summary.subtotal_cents + shipping2,
-      error: e?.message || "Checkout failed. Please try again.",
-      form
-    });
+    if (e.message && e.message.includes("Insufficient stock")) {
+      const shipping2 = computeShipping(summary.subtotal_cents);
+      return res.status(409).render("checkout/index", {
+        title: "Checkout",
+        ...summary,
+        shipping_cents: shipping2,
+        total_cents: summary.subtotal_cents + shipping2,
+        error: e.message,
+        form
+      });
+    }
+    return next(e);
   }
 });
 

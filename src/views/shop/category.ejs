@@ -29,6 +29,7 @@
               </div>
             </div>
             <form class="product-actions" action="/cart/add" method="post">
+              <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
               <input type="hidden" name="product_id" value="<%= p.id %>" />
               <input class="qty" type="number" name="qty" min="1" max="99" value="1" />
               <button class="btn btn-primary" type="submit" <%= p.stock <= 0 ? 'disabled' : '' %>>

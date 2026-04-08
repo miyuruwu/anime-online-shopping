@@ -32,6 +32,7 @@
       </div>
 
       <form class="buy-box card" action="/cart/add" method="post">
+        <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
         <input type="hidden" name="product_id" value="<%= product.id %>" />
         <div class="buy-row">
           <label class="label" for="qty">Qty</label>

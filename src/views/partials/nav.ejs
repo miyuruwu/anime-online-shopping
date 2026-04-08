@@ -42,6 +42,7 @@
           <span class="pill" style="background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10)"><%= locals.user.role %></span>
         </a>
         <form action="/auth/sign-out" method="post" style="display:inline">
+          <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
           <input type="hidden" name="next" value="<%= currentPath || '/shop' %>" />
           <button class="btn btn-ghost" type="submit">Sign out</button>
         </form>

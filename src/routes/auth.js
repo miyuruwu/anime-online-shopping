@@ -11,6 +11,21 @@ const {
 
 const router = express.Router();
 
+const rateLimit = require("express-rate-limit");
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 10,
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).render("auth/sign-in", {
+      title: "Rate Limited",
+      error: options.message,
+      next: "/shop",
+      form: { email: "" }
+    });
+  }
+});
+
 function safeNext(nextUrl) {
   const n = String(nextUrl || "");
   if (!n.startsWith("/")) return "/shop";
@@ -27,7 +42,7 @@ router.get("/sign-up", (req, res) => {
   });
 });
 
-router.post("/sign-up", async (req, res) => {
+router.post("/sign-up", authLimiter, async (req, res) => {
   const db = getDb();
   const next = safeNext(req.body.next);
 
@@ -110,7 +125,7 @@ router.get("/sign-in", (req, res) => {
   });
 });
 
-router.post("/sign-in", async (req, res) => {
+router.post("/sign-in", authLimiter, async (req, res) => {
   const db = getDb();
   const next = safeNext(req.body.next);
 

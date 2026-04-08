@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const crypto = require("crypto");
+const fs = require("fs");
 const { getDb } = require("../db/db");
 const { requireAuth, requireRole } = require("../lib/auth");
 
@@ -47,21 +48,46 @@ router.get("/", requireAuth, (req, res) => {
   });
 });
 
+router.get("/my-orders", requireAuth, (req, res) => {
+  const db = getDb();
+  const userId = Number(req.session.user.id);
+  
+  const orders = db
+    .prepare(
+      `SELECT id, created_at, subtotal_cents, shipping_cents, total_cents
+       FROM orders
+       WHERE user_id = ?
+       ORDER BY id DESC`
+    )
+    .all(userId);
+
+  res.render("account/my-orders", {
+    title: "My orders",
+    user: req.session.user,
+    orders
+  });
+});
+
 router.get("/orders", requireAuth, requireRole("admin"), (req, res) => {
   const db = getDb();
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
   const orders = db
     .prepare(
       `SELECT id, created_at, email, total_cents
        FROM orders
        ORDER BY id DESC
-       LIMIT 100`
+       LIMIT ? OFFSET ?`
     )
-    .all();
+    .all(limit, offset);
 
   res.render("account/orders", {
     title: "All orders",
     user: req.session.user,
-    orders
+    orders,
+    page
   });
 });
 
@@ -249,7 +275,11 @@ router.post("/products/:id", requireAuth, requireRole("seller", "admin"), upload
     .all();
 
   const form = buildFormFromBody(req.body);
+
+  let oldImageUrl = null;
   if (req.file) {
+    const oldProduct = db.prepare("SELECT image_url FROM products WHERE id = ?").get(id);
+    if (oldProduct) oldImageUrl = oldProduct.image_url;
     form.image_url = '/images/' + req.file.filename;
   }
 
@@ -314,6 +344,13 @@ router.post("/products/:id", requireAuth, requireRole("seller", "admin"), upload
         subtitle: "This item sold out across all parallel worlds."
       });
     }
+
+    if (oldImageUrl && oldImageUrl.startsWith("/images/")) {
+      const filePath = path.join(__dirname, "..", "..", "public", decodeURIComponent(oldImageUrl));
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (err) {}
+      }
+    }
   } catch (e) {
     return res.status(409).render("account/products", {
       title: "Edit product",
@@ -336,6 +373,7 @@ router.post("/products/:id/delete", requireAuth, requireRole("seller", "admin"),
   const id = Number(req.params.id);
 
   try {
+    const product = db.prepare("SELECT image_url FROM products WHERE id = ?").get(id);
     const result = db.prepare("DELETE FROM products WHERE id = ?").run(id);
 
     if (result.changes === 0) {
@@ -343,6 +381,13 @@ router.post("/products/:id/delete", requireAuth, requireRole("seller", "admin"),
         title: "Product not found",
         subtitle: "This item sold out across all parallel worlds."
       });
+    }
+
+    if (product && product.image_url && product.image_url.startsWith("/images/")) {
+      const filePath = path.join(__dirname, "..", "..", "public", decodeURIComponent(product.image_url));
+      if (fs.existsSync(filePath)) {
+        try { fs.unlinkSync(filePath); } catch (err) {}
+      }
     }
   } catch (e) {
     const products = db

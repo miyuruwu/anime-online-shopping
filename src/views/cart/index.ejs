@@ -34,6 +34,7 @@
               </div>
               <div class="cart-actions">
                 <form class="inline" action="/cart/set" method="post">
+                  <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
                   <input type="hidden" name="product_id" value="<%= line.product.id %>" />
                   <label class="label" for="qty-<%= line.product.id %>">Qty</label>
                   <input
@@ -68,6 +69,7 @@
         <div class="summary-actions">
           <a class="btn btn-primary btn-lg" href="/checkout">Checkout</a>
           <form action="/cart/clear" method="post">
+            <input type="hidden" name="CSRFToken" value="<%= csrfToken %>" />
             <button class="btn btn-ghost btn-lg" type="submit">Clear cart</button>
           </form>
         </div>
