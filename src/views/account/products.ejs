@@ -16,7 +16,7 @@
       <div class="alert"><strong>Oops.</strong> <%= error %></div>
     <% } %>
 
-    <form action="<%= formActionResolved %>" method="post" class="stack">
+    <form action="<%= formActionResolved %>" method="post" enctype="multipart/form-data" class="stack">
       <div class="two">
         <div class="field">
           <label class="label" for="name">Name</label>
@@ -44,8 +44,10 @@
           </select>
         </div>
         <div class="field">
-          <label class="label" for="image_url">Image URL</label>
-          <input id="image_url" class="input" name="image_url" value="<%= form.image_url %>" placeholder="/images/your-file.webp" required />
+          <label class="label" for="image_file">Image File (Upload)</label>
+          <input type="file" id="image_file" class="input" name="image_file" accept="image/*" />
+          <div class="fineprint" style="margin-top:8px">Or specify an Image URL:</div>
+          <input id="image_url" class="input" name="image_url" value="<%= form.image_url %>" placeholder="/images/your-file.webp" />
           <div class="fineprint">Must start with <code>/images/</code> or a <code>data:image/</code> URL.</div>
         </div>
       </div>

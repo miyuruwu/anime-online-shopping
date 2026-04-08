@@ -1,8 +1,27 @@
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const crypto = require("crypto");
 const { getDb } = require("../db/db");
 const { requireAuth, requireRole } = require("../lib/auth");
 
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "..", "..", "public", "images"));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const uniqueSuffix = crypto.randomBytes(6).toString("hex");
+    cb(null, 'upload-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
 
 function buildFormFromBody(body) {
   return {
@@ -140,7 +159,7 @@ router.get("/products/:id/edit", requireAuth, requireRole("seller", "admin"), (r
   });
 });
 
-router.post("/products", requireAuth, requireRole("seller", "admin"), (req, res) => {
+router.post("/products", requireAuth, requireRole("seller", "admin"), upload.single("image_file"), (req, res) => {
   const db = getDb();
 
   const categories = db
@@ -148,6 +167,9 @@ router.post("/products", requireAuth, requireRole("seller", "admin"), (req, res)
     .all();
 
   const form = buildFormFromBody(req.body);
+  if (req.file) {
+    form.image_url = '/images/' + req.file.filename;
+  }
 
   const products = db
     .prepare(
@@ -218,7 +240,7 @@ router.post("/products", requireAuth, requireRole("seller", "admin"), (req, res)
   return res.redirect("/account/products");
 });
 
-router.post("/products/:id", requireAuth, requireRole("seller", "admin"), (req, res) => {
+router.post("/products/:id", requireAuth, requireRole("seller", "admin"), upload.single("image_file"), (req, res) => {
   const db = getDb();
   const id = Number(req.params.id);
 
@@ -227,6 +249,9 @@ router.post("/products/:id", requireAuth, requireRole("seller", "admin"), (req, 
     .all();
 
   const form = buildFormFromBody(req.body);
+  if (req.file) {
+    form.image_url = '/images/' + req.file.filename;
+  }
 
   const products = db
     .prepare(

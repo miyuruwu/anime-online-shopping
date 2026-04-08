@@ -162,12 +162,7 @@ function seed() {
 
   const txProducts = db.transaction(() => {
     const keepSlugs = products.map((p) => p[0]);
-    const placeholders = keepSlugs.map(() => "?").join(", ");
-    if (keepSlugs.length) {
-      db.prepare(`DELETE FROM products WHERE slug NOT IN (${placeholders})`).run(
-        ...keepSlugs
-      );
-    }
+    // We purposely do NOT delete custom products to allow users to keep their own added items!
     for (const p of products) upsertProduct.run(...p);
   });
   txProducts();
