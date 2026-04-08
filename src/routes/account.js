@@ -306,4 +306,57 @@ router.post("/products/:id", requireAuth, requireRole("seller", "admin"), (req, 
   return res.redirect("/account/products");
 });
 
+router.post("/products/:id/delete", requireAuth, requireRole("seller", "admin"), (req, res) => {
+  const db = getDb();
+  const id = Number(req.params.id);
+
+  try {
+    const result = db.prepare("DELETE FROM products WHERE id = ?").run(id);
+
+    if (result.changes === 0) {
+      return res.status(404).render("404", {
+        title: "Product not found",
+        subtitle: "This item sold out across all parallel worlds."
+      });
+    }
+  } catch (e) {
+    const products = db
+      .prepare(
+        `SELECT p.id, p.slug, p.name, p.price_cents, p.stock, p.category_id, p.image_url, p.is_featured, c.name AS category_name
+         FROM products p
+         JOIN categories c ON c.id = p.category_id
+         ORDER BY p.id DESC
+         LIMIT 200`
+      )
+      .all();
+
+    const categories = db
+      .prepare("SELECT id, slug, name FROM categories ORDER BY name ASC")
+      .all();
+
+    return res.status(409).render("account/products", {
+      title: "Manage products",
+      user: req.session.user,
+      products,
+      categories,
+      error: "Could not delete product. It may be referenced by existing orders.",
+      form: {
+        name: "",
+        slug: "",
+        description: "",
+        price_cents: 1999,
+        stock: 10,
+        image_url: "/images/",
+        category_id: categories[0]?.id || null,
+        is_featured: 0
+      },
+      formAction: "/account/products",
+      submitLabel: "Create product",
+      editing: false
+    });
+  }
+
+  return res.redirect("/account/products");
+});
+
 module.exports = router;
