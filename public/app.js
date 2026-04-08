@@ -7,6 +7,7 @@
 
   const STORAGE_KEY = "animeShop.bgm";
   const SESSION_TIME_KEY = "animeShop.bgmTime";
+  const SESSION_PLAYING_KEY = "animeShop.bgmPlaying";
 
   function setUi(playing) {
     toggle.setAttribute("aria-pressed", playing ? "true" : "false");
@@ -57,6 +58,7 @@
     try {
       if (!Number.isFinite(audio.currentTime)) return;
       sessionStorage.setItem(SESSION_TIME_KEY, String(audio.currentTime));
+      sessionStorage.setItem(SESSION_PLAYING_KEY, audio.paused ? "0" : "1");
     } catch {
       // ignore
     }
@@ -74,7 +76,8 @@
 
   // Autoplay is usually blocked; we only attempt play when user chose "On" before.
   setUi(false);
-  if (prefs.enabled) {
+  const wasPlaying = sessionStorage.getItem(SESSION_PLAYING_KEY) === "1";
+  if (prefs.enabled || wasPlaying) {
     audio.play().then(
       () => setUi(true),
       () => setUi(false)
@@ -114,4 +117,3 @@
     window.clearInterval(persistInterval);
   });
 })();
-
