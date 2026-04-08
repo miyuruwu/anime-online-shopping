@@ -1,9 +1,13 @@
 <%- include('../partials/head', { title }) %>
 <%- include('../partials/nav', { cartCount: 0, currentPath }) %>
 
+<% const formActionResolved = typeof formAction !== 'undefined' ? formAction : '/account/products'; %>
+<% const submitLabelResolved = typeof submitLabel !== 'undefined' ? submitLabel : 'Create product'; %>
+<% const editingResolved = typeof editing !== 'undefined' ? editing : false; %>
+
 <main class="container">
   <section class="page-head">
-    <h1 class="page-title">Manage products</h1>
+    <h1 class="page-title"><%= editingResolved ? 'Edit product' : 'Manage products' %></h1>
     <div class="page-sub">Seller/Admin view. Create products that show in the shop.</div>
   </section>
 
@@ -12,7 +16,7 @@
       <div class="alert"><strong>Oops.</strong> <%= error %></div>
     <% } %>
 
-    <form action="/account/products" method="post" class="stack">
+    <form action="<%= formActionResolved %>" method="post" class="stack">
       <div class="two">
         <div class="field">
           <label class="label" for="name">Name</label>
@@ -42,8 +46,14 @@
         <div class="field">
           <label class="label" for="image_url">Image URL</label>
           <input id="image_url" class="input" name="image_url" value="<%= form.image_url %>" placeholder="/images/your-file.webp" required />
-          <div class="fineprint">Must start with <code>/images/</code>.</div>
+          <div class="fineprint">Must start with <code>/images/</code> or a <code>data:image/</code> URL.</div>
         </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="image_upload">Upload image</label>
+        <input id="image_upload" class="input" type="file" accept="image/*" />
+        <div class="fineprint">Pick a file to auto-fill the Image URL using a data URL. Large images increase page size.</div>
       </div>
 
       <div class="two">
@@ -62,7 +72,12 @@
         <span class="muted">Featured</span>
       </label>
 
-      <button class="btn btn-primary btn-lg" type="submit">Create product</button>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <button class="btn btn-primary btn-lg" type="submit"><%= submitLabelResolved %></button>
+        <% if (editingResolved) { %>
+          <a class="btn btn-ghost btn-lg" href="/account/products">Cancel edit</a>
+        <% } %>
+      </div>
       <div class="fineprint">Tip: put your image in <code>public/images/</code> and use its filename.</div>
     </form>
   </section>
@@ -79,12 +94,34 @@
             <strong><%= p.name %></strong>
             <span class="muted">• <%= p.category_name %> • stock <%= p.stock %> • <code><%= p.slug %></code></span>
           </div>
-          <div class="summary-money"><%= formatMoney(p.price_cents) %></div>
+          <div style="display:flex; gap:10px; align-items:center">
+            <div class="summary-money"><%= formatMoney(p.price_cents) %></div>
+            <a class="btn btn-ghost" href="/account/products/<%= p.id %>/edit">Edit</a>
+          </div>
         </div>
       <% }) %>
     </div>
   </section>
 </main>
 
-<%- include('../partials/footer') %>
+<script>
+  (() => {
+    const fileInput = document.getElementById('image_upload');
+    const urlInput = document.getElementById('image_url');
+    if (!fileInput || !urlInput) return;
 
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          urlInput.value = reader.result;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  })();
+</script>
+
+<%- include('../partials/footer') %>
