@@ -116,4 +116,75 @@
     persistTime();
     window.clearInterval(persistInterval);
   });
+
+  // --- Seamless category navigation (PJAX) ---
+  const MAIN_SELECTOR = "main";
+
+  function sameOrigin(url) {
+    return url.origin === window.location.origin;
+  }
+
+  function shouldHandle(url) {
+    if (!sameOrigin(url)) return false;
+    if (url.pathname === "/shop") return true;
+    if (url.pathname.startsWith("/shop/c/")) return true;
+    return false;
+  }
+
+  async function fetchAndSwap(url, { push = true } = {}) {
+    try {
+      const res = await fetch(url, {
+        headers: { "X-Requested-With": "fetch" }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const html = await res.text();
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const newMain = doc.querySelector(MAIN_SELECTOR);
+      const curMain = document.querySelector(MAIN_SELECTOR);
+      if (!newMain || !curMain) throw new Error("Missing main element");
+
+      curMain.replaceWith(newMain);
+      document.title = doc.title || document.title;
+
+      // Update active nav link state
+      const navLinks = document.querySelectorAll(".nav .nav-link");
+      navLinks.forEach((link) => {
+        const href = link.getAttribute("href") || "";
+        const active = href && window.location.pathname.startsWith(href);
+        link.classList.toggle("active", Boolean(active));
+      });
+
+      if (push) {
+        window.history.pushState({ url }, "", url);
+      }
+
+      window.scrollTo({ top: 0, behavior: "instant" });
+    } catch (err) {
+      // Fallback to full navigation if anything fails
+      window.location.href = url;
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("a");
+    if (!link) return;
+    if (link.target && link.target !== "_self") return;
+    if (link.hasAttribute("download")) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("#")) return;
+
+    const url = new URL(href, window.location.href);
+    if (!shouldHandle(url)) return;
+
+    event.preventDefault();
+    fetchAndSwap(url.toString(), { push: true });
+  });
+
+  window.addEventListener("popstate", (event) => {
+    const url = (event.state && event.state.url) || window.location.href;
+    fetchAndSwap(url, { push: false });
+  });
 })();
