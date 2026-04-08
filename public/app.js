@@ -17,7 +17,7 @@
   function loadPrefs() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { enabled: false, volume: 0.35 };
+      if (!raw) return { enabled: true, volume: 0.35 };
       const parsed = JSON.parse(raw);
       return {
         enabled: Boolean(parsed.enabled),
@@ -27,7 +27,7 @@
             : 0.35
       };
     } catch {
-      return { enabled: false, volume: 0.35 };
+      return { enabled: true, volume: 0.35 };
     }
   }
 
@@ -74,14 +74,35 @@
   });
   audio.addEventListener("ended", persistTime);
 
-  // Autoplay is usually blocked; we only attempt play when user chose "On" before.
+  function attemptPlay() {
+    return audio.play().then(
+      () => {
+        setUi(true);
+        sessionStorage.setItem(SESSION_PLAYING_KEY, "1");
+      },
+      () => {
+        setUi(false);
+      }
+    );
+  }
+
+  function resumeOnGesture() {
+    const handler = () => {
+      document.removeEventListener("pointerdown", handler);
+      document.removeEventListener("keydown", handler);
+      document.removeEventListener("touchstart", handler);
+      attemptPlay();
+    };
+    document.addEventListener("pointerdown", handler, { once: true });
+    document.addEventListener("keydown", handler, { once: true });
+    document.addEventListener("touchstart", handler, { once: true });
+  }
+
+  // Autoplay is usually blocked; we attempt play and fall back to first gesture.
   setUi(false);
   const wasPlaying = sessionStorage.getItem(SESSION_PLAYING_KEY) === "1";
   if (prefs.enabled || wasPlaying) {
-    audio.play().then(
-      () => setUi(true),
-      () => setUi(false)
-    );
+    attemptPlay().catch(() => resumeOnGesture());
   }
 
   toggle.addEventListener("click", async () => {
@@ -90,6 +111,7 @@
       audio.pause();
       setUi(false);
       savePrefs(false, audio.volume);
+      sessionStorage.setItem(SESSION_PLAYING_KEY, "0");
       return;
     }
 
@@ -97,6 +119,7 @@
       await audio.play();
       setUi(true);
       savePrefs(true, audio.volume);
+      sessionStorage.setItem(SESSION_PLAYING_KEY, "1");
     } catch {
       setUi(false);
     }
@@ -126,10 +149,7 @@
 
   function shouldHandle(url) {
     if (!sameOrigin(url)) return false;
-    if (url.pathname === "/shop") return true;
-    if (url.pathname.startsWith("/shop/c/")) return true;
-    if (url.pathname.startsWith("/shop/p/")) return true;
-    return false;
+    return true;
   }
 
   async function fetchAndSwap(url, { push = true } = {}) {
@@ -172,6 +192,7 @@
     if (!link) return;
     if (link.target && link.target !== "_self") return;
     if (link.hasAttribute("download")) return;
+    if (link.hasAttribute("data-no-pjax")) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
     const href = link.getAttribute("href");
