@@ -91,11 +91,13 @@
       document.removeEventListener("pointerdown", handler);
       document.removeEventListener("keydown", handler);
       document.removeEventListener("touchstart", handler);
+      document.removeEventListener("click", handler);
       attemptPlay();
     };
     document.addEventListener("pointerdown", handler, { once: true });
     document.addEventListener("keydown", handler, { once: true });
     document.addEventListener("touchstart", handler, { once: true });
+    document.addEventListener("click", handler, { once: true });
   }
 
   // Autoplay is usually blocked; we attempt play and fall back to first gesture.
@@ -152,12 +154,16 @@
     return true;
   }
 
-  async function fetchAndSwap(url, { push = true } = {}) {
+  async function fetchAndSwap(targetUrl, { push = true, method = "GET", body = null } = {}) {
     try {
-      const res = await fetch(url, {
+      const res = await fetch(targetUrl, {
+        method,
+        body,
         headers: { "X-Requested-With": "fetch" }
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const finalUrl = res.redirected ? res.url : targetUrl;
 
       const html = await res.text();
       const doc = new DOMParser().parseFromString(html, "text/html");
@@ -177,13 +183,18 @@
       });
 
       if (push) {
-        window.history.pushState({ url }, "", url);
+        window.history.pushState({ url: finalUrl }, "", finalUrl);
       }
 
       window.scrollTo({ top: 0, behavior: "instant" });
     } catch (err) {
-      // Fallback to full navigation if anything fails
-      window.location.href = url;
+      // Fallback: full navigation if anything fails
+      if (method === "GET") {
+        window.location.href = targetUrl;
+      } else {
+        // If it was a failed POST without redirect, reload current page or fallback
+        window.location.reload();
+      }
     }
   }
 
@@ -203,6 +214,38 @@
 
     event.preventDefault();
     fetchAndSwap(url.toString(), { push: true });
+  });
+
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (form.tagName !== "FORM") return;
+    if (form.hasAttribute("data-no-pjax")) return;
+    if (form.target && form.target !== "_self") return;
+
+    const method = (form.getAttribute("method") || "GET").toUpperCase();
+    const action = form.getAttribute("action") || window.location.href;
+    const url = new URL(action, window.location.href);
+
+    if (!shouldHandle(url)) return;
+
+    event.preventDefault();
+
+    let body = null;
+    let fetchUrl = url.toString();
+
+    if (method === "GET") {
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+      for (const [k, v] of url.searchParams) {
+        if (!params.has(k)) params.append(k, v);
+      }
+      url.search = params.toString();
+      fetchUrl = url.toString();
+    } else {
+      body = new FormData(form);
+    }
+
+    fetchAndSwap(fetchUrl, { push: true, method, body });
   });
 
   window.addEventListener("popstate", (event) => {
