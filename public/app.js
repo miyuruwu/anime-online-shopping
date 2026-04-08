@@ -117,7 +117,7 @@
     window.clearInterval(persistInterval);
   });
 
-  // --- Seamless category navigation (PJAX) ---
+  // --- Seamless navigation (PJAX) ---
   const MAIN_SELECTOR = "main";
 
   function sameOrigin(url) {
@@ -128,6 +128,7 @@
     if (!sameOrigin(url)) return false;
     if (url.pathname === "/shop") return true;
     if (url.pathname.startsWith("/shop/c/")) return true;
+    if (url.pathname.startsWith("/shop/p/")) return true;
     return false;
   }
 
