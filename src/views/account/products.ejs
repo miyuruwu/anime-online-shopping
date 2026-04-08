@@ -56,6 +56,13 @@
         <div class="fineprint">Pick a file to auto-fill the Image URL using a data URL. Large images increase page size.</div>
       </div>
 
+      <div class="field">
+        <label class="label">Preview</label>
+        <div class="card" style="padding:12px; max-width:240px">
+          <img id="image_preview" src="<%= form.image_url %>" alt="Preview" style="width:100%; height:auto; display:block" onerror="this.style.display='none'" />
+        </div>
+      </div>
+
       <div class="two">
         <div class="field">
           <label class="label" for="price_cents">Price (cents)</label>
@@ -94,9 +101,12 @@
             <strong><%= p.name %></strong>
             <span class="muted">• <%= p.category_name %> • stock <%= p.stock %> • <code><%= p.slug %></code></span>
           </div>
-          <div style="display:flex; gap:10px; align-items:center">
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
             <div class="summary-money"><%= formatMoney(p.price_cents) %></div>
             <a class="btn btn-ghost" href="/account/products/<%= p.id %>/edit">Edit</a>
+            <form action="/account/products/<%= p.id %>/delete" method="post" style="display:inline">
+              <button class="btn btn-ghost" type="submit" onclick="return confirm('Delete this product?')">Remove</button>
+            </form>
           </div>
         </div>
       <% }) %>
@@ -108,7 +118,14 @@
   (() => {
     const fileInput = document.getElementById('image_upload');
     const urlInput = document.getElementById('image_url');
+    const preview = document.getElementById('image_preview');
     if (!fileInput || !urlInput) return;
+
+    function setPreview(src) {
+      if (!preview) return;
+      preview.src = src;
+      preview.style.display = 'block';
+    }
 
     fileInput.addEventListener('change', () => {
       const file = fileInput.files && fileInput.files[0];
@@ -117,9 +134,14 @@
       reader.onload = () => {
         if (typeof reader.result === 'string') {
           urlInput.value = reader.result;
+          setPreview(reader.result);
         }
       };
       reader.readAsDataURL(file);
+    });
+
+    urlInput.addEventListener('input', () => {
+      if (urlInput.value) setPreview(urlInput.value);
     });
   })();
 </script>
